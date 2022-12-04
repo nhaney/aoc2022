@@ -29,9 +29,10 @@ def find_character_priority(c: str) -> int:
 
     return value
 
+
 def chunker(iterable, chunk_size):
     n = len(iterable)
-    return [iterable[i:i + group_size] for i in range(0, n, chunk_size)]
+    return [iterable[i : i + group_size] for i in range(0, n, chunk_size)]
 
 
 with open(os.path.join(os.path.dirname(__file__), "input.txt"), "r") as f:
