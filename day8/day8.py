@@ -24,6 +24,7 @@ axis when scanning a row or the y axis when scanning a column. The function that
 return a set of coordinates that can then be merged with the currently selected set of coordinates.
 """
 
+
 def tree_counter(grid: List[List[int]]) -> int:
     @dataclass(frozen=True)
     class _TreeScanResult:
@@ -42,73 +43,91 @@ def tree_counter(grid: List[List[int]]) -> int:
         if is_new_max:
             visible_trees[i] = True
 
-        return _TreeScanResult(visible_trees, val if is_new_max else cur_result.max_tree)
-            
+        return _TreeScanResult(
+            visible_trees, val if is_new_max else cur_result.max_tree
+        )
 
-    def _get_visible_trees_in_row(i: int, row: List[int], reversed: bool) -> Set[Tuple[int, int]]:
+    def _get_visible_trees_in_row(
+        i: int, row: List[int], reversed: bool
+    ) -> Set[Tuple[int, int]]:
         n = len(row)
         trees_in_order = row if not reversed else row[::-1]
         scan_result = reduce(
-            lambda accum, index_and_val: _scan_trees(accum, index_and_val[0], index_and_val[1]),
+            lambda accum, index_and_val: _scan_trees(
+                accum, index_and_val[0], index_and_val[1]
+            ),
             enumerate(trees_in_order),
-            _TreeScanResult.default(n)
+            _TreeScanResult.default(n),
         )
 
-        return set((
-            (i, k if not reversed else (n - 1) - k)
-            for k, is_visible in enumerate(scan_result.visible_trees)
-            if is_visible
-        ))
+        return set(
+            (
+                (i, k if not reversed else (n - 1) - k)
+                for k, is_visible in enumerate(scan_result.visible_trees)
+                if is_visible
+            )
+        )
 
-
-    def _get_visible_trees_in_col(j: int, col: List[int], reversed: bool) -> Set[Tuple[int, int]]:
+    def _get_visible_trees_in_col(
+        j: int, col: List[int], reversed: bool
+    ) -> Set[Tuple[int, int]]:
         n = len(col)
         trees_in_order = col if not reversed else col[::-1]
         scan_result = reduce(
-            lambda accum, index_and_val: _scan_trees(accum, index_and_val[0], index_and_val[1]),
+            lambda accum, index_and_val: _scan_trees(
+                accum, index_and_val[0], index_and_val[1]
+            ),
             enumerate(trees_in_order),
-            _TreeScanResult.default(n)
+            _TreeScanResult.default(n),
         )
 
-        return set((
-            (k if not reversed else (n - 1) - k, j)
-            for k, is_visible in enumerate(scan_result.visible_trees)
-            if is_visible
-        ))
+        return set(
+            (
+                (k if not reversed else (n - 1) - k, j)
+                for k, is_visible in enumerate(scan_result.visible_trees)
+                if is_visible
+            )
+        )
 
     trees_visible_from_left = reduce(
-        lambda accum, i_and_row: accum | _get_visible_trees_in_row(i_and_row[0], i_and_row[1], reversed=False),
+        lambda accum, i_and_row: accum
+        | _get_visible_trees_in_row(i_and_row[0], i_and_row[1], reversed=False),
         enumerate(grid),
-        set()
+        set(),
     )
 
     trees_visible_from_right = reduce(
-        lambda accum, i_and_row: accum | _get_visible_trees_in_row(i_and_row[0], i_and_row[1], reversed=True),
+        lambda accum, i_and_row: accum
+        | _get_visible_trees_in_row(i_and_row[0], i_and_row[1], reversed=True),
         enumerate(grid),
-        set()
+        set(),
     )
 
     trees_visible_from_top = reduce(
-        lambda accum, j_and_col: accum | _get_visible_trees_in_col(j_and_col[0], j_and_col[1], reversed=False),
+        lambda accum, j_and_col: accum
+        | _get_visible_trees_in_col(j_and_col[0], j_and_col[1], reversed=False),
         enumerate(zip(*grid)),
-        set()
+        set(),
     )
 
     trees_visible_from_bottom = reduce(
-        lambda accum, j_and_col: accum | _get_visible_trees_in_col(j_and_col[0], j_and_col[1], reversed=True),
+        lambda accum, j_and_col: accum
+        | _get_visible_trees_in_col(j_and_col[0], j_and_col[1], reversed=True),
         enumerate(zip(*grid)),
-        set()
+        set(),
     )
 
     return len(
-        trees_visible_from_left | 
-        trees_visible_from_right |
-        trees_visible_from_top |
-        trees_visible_from_bottom
+        trees_visible_from_left
+        | trees_visible_from_right
+        | trees_visible_from_top
+        | trees_visible_from_bottom
     )
 
 
-def distance_to_gte_or_end(iter, val: int, have_encountered_larger_value: bool = False) -> int:
+def distance_to_gte_or_end(
+    iter, val: int, have_encountered_larger_value: bool = False
+) -> int:
     """
     Calculates how many iterations occur before the end of the iterator or until a greater than or equal
     to the value passed in is encountered.
@@ -125,18 +144,29 @@ def distance_to_gte_or_end(iter, val: int, have_encountered_larger_value: bool =
         return 0
 
     return 1 + distance_to_gte_or_end(iter, val, did_encounter_larger_value)
-    
 
 
 def calculate_scenic_score(i: int, j: int, grid: List[List[int]]) -> int:
     val = grid[i][j]
     m, n = len(grid), len(grid[0])
 
-    score_to_right = distance_to_gte_or_end(iter(grid[i][j+1:]), val) if i != m - 1 else 0
-    score_to_left = distance_to_gte_or_end(iter(grid[i][j - 1::-1]), val) if i != 0 else 0
-    score_to_bottom = distance_to_gte_or_end(iter(list(zip(*grid))[j][i + 1:]), val) if j != n - 1 else 0
-    score_to_top = distance_to_gte_or_end(iter(list(zip(*grid))[j][i - 1::-1]), val) if j != 0 else 0
-    
+    score_to_right = (
+        distance_to_gte_or_end(iter(grid[i][j + 1 :]), val) if i != m - 1 else 0
+    )
+    score_to_left = (
+        distance_to_gte_or_end(iter(grid[i][j - 1 :: -1]), val) if i != 0 else 0
+    )
+    score_to_bottom = (
+        distance_to_gte_or_end(iter(list(zip(*grid))[j][i + 1 :]), val)
+        if j != n - 1
+        else 0
+    )
+    score_to_top = (
+        distance_to_gte_or_end(iter(list(zip(*grid))[j][i - 1 :: -1]), val)
+        if j != 0
+        else 0
+    )
+
     result = score_to_right * score_to_left * score_to_top * score_to_bottom
     return result
 
@@ -151,5 +181,11 @@ grid = [[int(c) for c in line] for line in lines]
 result1 = tree_counter(grid)
 print(result1)
 
-result2 = max([calculate_scenic_score(i, j, grid) for i in range(len(grid)) for j in range(len(grid[0]))])
+result2 = max(
+    [
+        calculate_scenic_score(i, j, grid)
+        for i in range(len(grid))
+        for j in range(len(grid[0]))
+    ]
+)
 print(result2)

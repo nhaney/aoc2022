@@ -24,7 +24,9 @@ class DistinctWindow:
 def update_window(cur: DistinctWindow, next_char: str) -> DistinctWindow:
     assert len(next_char) == 1
     repeat_index = cur.distinct_chars.get(next_char, -1)
-    new_distinct_chars = {c: i for c, i in cur.distinct_chars.items() if i > repeat_index}
+    new_distinct_chars = {
+        c: i for c, i in cur.distinct_chars.items() if i > repeat_index
+    }
 
     this_index = cur.max_index + 1
     new_distinct_chars[next_char] = this_index
@@ -33,9 +35,15 @@ def update_window(cur: DistinctWindow, next_char: str) -> DistinctWindow:
     return DistinctWindow(new_distinct_chars, new_min_index, this_index)
 
 
-def find_first_index_after_distinct_char_marker(stream: Iterator[str], marker_length: int) -> int:
-    windows = accumulate(stream, update_window, initial=DistinctWindow.init_from_iter(stream))
-    return next(filter(lambda x: x.window_length >= marker_length, windows)).max_index + 1
+def find_first_index_after_distinct_char_marker(
+    stream: Iterator[str], marker_length: int
+) -> int:
+    windows = accumulate(
+        stream, update_window, initial=DistinctWindow.init_from_iter(stream)
+    )
+    return (
+        next(filter(lambda x: x.window_length >= marker_length, windows)).max_index + 1
+    )
 
 
 with open(os.path.join(os.path.dirname(__file__), "input.txt"), "r") as f:

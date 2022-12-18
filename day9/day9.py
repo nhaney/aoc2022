@@ -29,7 +29,9 @@ class RopePosition:
     knot_positions: List[Tuple[int, int]]
 
 
-def move_head_in_direction(head_pos: Tuple[int, int], direction: Direction) -> Tuple[int, int]:
+def move_head_in_direction(
+    head_pos: Tuple[int, int], direction: Direction
+) -> Tuple[int, int]:
     """Given a move command, moves the head rope position."""
     cur_x, cur_y = head_pos
 
@@ -46,7 +48,9 @@ def move_head_in_direction(head_pos: Tuple[int, int], direction: Direction) -> T
             raise ValueError("Invalid direction")
 
 
-def move_knot_behind_other(pos_to_follow: Tuple[int, int], cur_pos: Tuple[int, int]) -> Tuple[int, int]:
+def move_knot_behind_other(
+    pos_to_follow: Tuple[int, int], cur_pos: Tuple[int, int]
+) -> Tuple[int, int]:
     """Given the new position of the head of the rope, moves the tail so that it "follows" it."""
     tail_x, tail_y = cur_pos
     head_x, head_y = pos_to_follow
@@ -57,7 +61,7 @@ def move_knot_behind_other(pos_to_follow: Tuple[int, int], cur_pos: Tuple[int, i
         # overlapping
         if x1 == x2 and y1 == y2:
             return True
-        
+
         # one space to the left or right
         if abs(x1 - x2) == 1 and y1 == y2:
             return True
@@ -65,17 +69,17 @@ def move_knot_behind_other(pos_to_follow: Tuple[int, int], cur_pos: Tuple[int, i
         # one space up or down
         if x1 == x2 and abs(y1 - y2) == 1:
             return True
-        
+
         # diagonally touching
         if abs(x1 - x2) == 1 and abs(y1 - y2) == 1:
             return True
-        
+
         return False
- 
+
     # if the positions are touching, no movement necessary
     if _are_positions_touching(tail_x, tail_y, head_x, head_y):
-        return tail_x, tail_y 
-    
+        return tail_x, tail_y
+
     # if we are doing a non-diagonal move, move one space either up or down
     if dx == 0 or dy == 0:
         if dx:
@@ -84,21 +88,35 @@ def move_knot_behind_other(pos_to_follow: Tuple[int, int], cur_pos: Tuple[int, i
         else:
             assert abs(dy) == 2
             return tail_x, tail_y + (dy // abs(dy))
-        
+
     # if we are moving diagonally, we have to move diagonally one place the direction of the head
     return tail_x + (dx // abs(dx)), tail_y + (dy // abs(dy))
 
 
-def simulate_one_step_in_direction(rope_pos: RopePosition, dir: Direction) -> RopePosition:
+def simulate_one_step_in_direction(
+    rope_pos: RopePosition, dir: Direction
+) -> RopePosition:
     new_head_pos = move_head_in_direction(rope_pos.knot_positions[0], dir)
-    positions = list(accumulate(rope_pos.knot_positions[1:], move_knot_behind_other, initial=new_head_pos))
+    positions = list(
+        accumulate(
+            rope_pos.knot_positions[1:], move_knot_behind_other, initial=new_head_pos
+        )
+    )
     return RopePosition(positions)
 
 
-def simulate_rope_movement(movement_history: List[RopePosition], command: MoveCommand) -> List[RopePosition]:
+def simulate_rope_movement(
+    movement_history: List[RopePosition], command: MoveCommand
+) -> List[RopePosition]:
     """Applies a movement command to the rope and returns all of the positions of the ropes given the movements."""
     last_pos = movement_history[-1]
-    new_movements = list(accumulate([command.dir] * command.steps, simulate_one_step_in_direction, initial=last_pos))
+    new_movements = list(
+        accumulate(
+            [command.dir] * command.steps,
+            simulate_one_step_in_direction,
+            initial=last_pos,
+        )
+    )
     return movement_history[:-1] + new_movements
 
 
@@ -113,14 +131,18 @@ lines = text.split("\n")
 move_commands = parse_move_commands(lines)
 
 # part 1
-positions = reduce(simulate_rope_movement, move_commands, [RopePosition([(0, 0), (0, 0)])])
+positions = reduce(
+    simulate_rope_movement, move_commands, [RopePosition([(0, 0), (0, 0)])]
+)
 
 unique_tail_positions = set([position.knot_positions[-1] for position in positions])
 result1 = len(unique_tail_positions)
 print(result1)
 
 # part 2
-positions = reduce(simulate_rope_movement, move_commands, [RopePosition([(0, 0) for _ in range(10)])])
+positions = reduce(
+    simulate_rope_movement, move_commands, [RopePosition([(0, 0) for _ in range(10)])]
+)
 
 unique_tail_positions = set([position.knot_positions[-1] for position in positions])
 result2 = len(unique_tail_positions)
